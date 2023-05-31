@@ -22,6 +22,8 @@ self.addEventListener("install", async (event) => {
     console.log("files", files);
     let urlsToCache = [
       "/",
+      "/pokemonbg.mp4",
+      "/opening.mp3",
       "/map",
       "/account",
       "/capture",
@@ -47,7 +49,8 @@ self.addEventListener("install", async (event) => {
         const response = await fetch(request);
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch "${url}"`);
+          return;
+          //throw new Error(`Failed to fetch "${url}"`);
         }
 
         await cache.put(request, response.clone());
