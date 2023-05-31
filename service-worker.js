@@ -1,25 +1,88 @@
 // eslint-disable-next-line no-restricted-globals
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open("static").then((cache) => {
-      return fetch("asset-manifest.json")
-        .then((response) => response.json())
-        .then((assets) => {
-          const urlsToCache = Object.values(assets).concat([
-            "/",
-            "/index.html",
-            "/offline.html",
-            "/manifest.json",
-            "/favicon.ico",
-          ]);
+self.addEventListener("install", async (event) => {
+  try {
+    const cache = await caches.open("static");
+    console.log("Opened cache");
 
-          return cache.addAll(urlsToCache);
-        });
-    })
-  );
-  // eslint-disable-next-line no-restricted-globals
-  self.skipWaiting();
+    const response = await fetch("asset-manifest.json");
+    console.log("Fetched assets");
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch assets");
+    }
+
+    const assets = await response.json();
+    console.log("Converted to JSON", assets);
+
+    const entrypoints = assets.entrypoints;
+    // Should be an array of strings
+    console.log("entrypoints", entrypoints);
+    // Should be an object with keys as strings and values (path) as strings
+    const files = assets.files;
+    console.log("files", files);
+    let urlsToCache = [
+      "/",
+      "/map",
+      "/account",
+      "/capture",
+      "/battle",
+      "/pokedex",
+      "/garden",
+      "/index.html",
+      "/offline.html",
+      "/manifest.json",
+      "/favicon.ico",
+    ];
+    urlsToCache = urlsToCache.concat(Object.values(files));
+    // For entrypoints, we add to the UrlsToCache each string inside the array
+    entrypoints.forEach((entrypoint) => {
+      urlsToCache.push(entrypoint);
+    });
+
+    console.log("urlsToCache", urlsToCache);
+
+    await Promise.all(
+      urlsToCache.map(async (url) => {
+        const request = new Request(url);
+        const response = await fetch(request);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch "${url}"`);
+        }
+
+        await cache.put(request, response.clone());
+      })
+    );
+
+    // eslint-disable-next-line no-restricted-globals
+    self.skipWaiting();
+    console.log("All assets cached successfully!");
+  } catch (error) {
+    console.error("Caching failed:", error);
+  }
 });
+
+// self.addEventListener("install", async (event) => {
+//   const cache = await caches.open("static");
+//   console.log("Opened cache");
+//   const response = await fetch("asset-manifest.json");
+//   console.log("Fetched assets");
+//   const assets = await response.json();
+//   console.log("Converted to json", assets);
+
+//   const urlsToCache = Object.values(assets).concat([
+//     "/",
+//     "/index.html",
+//     "/offline.html",
+//     "/manifest.json",
+//     "/favicon.ico",
+//   ]);
+//   // @ts-ignore
+//   await cache.addAll(urlsToCache);
+
+//   // eslint-disable-next-line no-restricted-globals
+//   self.skipWaiting();
+// });
 
 // self.addEventListener("install", (event) => {
 //   // ¨Pre-cache everything from React app production mode to make it available offline
