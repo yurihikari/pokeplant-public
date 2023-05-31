@@ -1,36 +1,58 @@
 // eslint-disable-next-line no-restricted-globals
 self.addEventListener("install", (event) => {
-  // ¨Pre-cache everything from React app to make it available offline
   event.waitUntil(
     caches.open("static").then((cache) => {
-      return cache.addAll([
-        "/",
-        "/map",
-        "/account",
-        "/capture",
-        "/battle",
-        "/pokedex",
-        "/garden",
-        "/index.html",
-        "/offline.html",
-        "/logo.png",
-        "/logo192.png",
-        "/logo512.png",
-        "/opening.mp3",
-        "/pokemonbg.mp4",
-        "/manifest.json",
-        "/static/js/bundle.js",
-        "/static/js/0.chunk.js",
-        "/static/js/main.chunk.js",
-        "/favicon.ico",
-        "/static/js/vendors~main.chunk.js",
-        "/static/js/vendors~main.chunk.js.LICENSE.txt",
-      ]);
+      return fetch("asset-manifest.json")
+        .then((response) => response.json())
+        .then((assets) => {
+          const urlsToCache = Object.values(assets).concat([
+            "/",
+            "/index.html",
+            "/offline.html",
+            "/manifest.json",
+            "/favicon.ico",
+          ]);
+
+          return cache.addAll(urlsToCache);
+        });
     })
   );
   // eslint-disable-next-line no-restricted-globals
   self.skipWaiting();
 });
+
+// self.addEventListener("install", (event) => {
+//   // ¨Pre-cache everything from React app production mode to make it available offline
+//   event.waitUntil(
+//     caches.open("static").then((cache) => {
+//       return cache.addAll([
+//         "/",
+//         "/map",
+//         "/account",
+//         "/capture",
+//         "/battle",
+//         "/pokedex",
+//         "/garden",
+//         "/index.html",
+//         "/offline.html",
+//         "/logo.png",
+//         "/logo192.png",
+//         "/logo512.png",
+//         "/opening.mp3",
+//         "/pokemonbg.mp4",
+//         "/manifest.json",
+//         "/static/js/bundle.js",
+//         "/static/js/0.chunk.js",
+//         "/static/js/main.chunk.js",
+//         "/favicon.ico",
+//         "/static/js/vendors~main.chunk.js",
+//         "/static/js/vendors~main.chunk.js.LICENSE.txt",
+//       ]);
+//     })
+//   );
+//   // eslint-disable-next-line no-restricted-globals
+//   self.skipWaiting();
+// });
 
 // eslint-disable-next-line no-restricted-globals
 self.addEventListener("fetch", async function (event) {
